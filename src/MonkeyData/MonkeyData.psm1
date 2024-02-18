@@ -1,5 +1,8 @@
 # Get-DbaDatabase nin8\sql2019|ft
 
+# $Script:md_Completions = @{
+#     DbaTable = MonkeyData.GEtDb | % Name | sort-Object -unique
+# }
 
 function MonkeyData.GetDatabase {
     <#
@@ -25,6 +28,62 @@ function MonkeyData.GetDatabase {
     Get-DbaDatabase $DbInstance
 }
 
+
+
+function MonkeyData.InvokeNamedQuery  {
+    <#
+    .SYNOPSIS
+        invoke named queries
+    .example
+        MonkeyData.InvokeNamedQuery | select -First 1
+            | MonkeyData.SummarizeType Smo.Database
+    #>
+    # [OutputType('Microsoft.SqlServer.Management.Smo.Database')]
+    [CmdletBinding()]
+    [Alias(
+        'MonkeyData.InvokeNamed',
+        'md.InvokeNamedQuery'
+    )]
+    param(
+        [Parameter(Mandatory, Position=0)]
+        [ValidateSet(
+            'system_objects',
+            'DbaTools.GetTables'
+        )]
+        [string]$NamedQuery,
+        [hashtable]$Params = @{},
+
+        [Alias('SqlInstance', 'Inst')]
+        [Parameter()]
+        [Dataplat.Dbatools.Parameter.DbaInstanceParameter[]]
+        $DbInstance = @('nin8\sql2019'),
+        # [DbaInstanceParameter[]]$DbInstance = @('nin8\sql2019'),
+
+        [Parameter()]
+        [Microsoft.SqlServer.Management.Smo.Database[]]
+        $Database
+
+    )
+    switch($NamedQuery) {
+        'DbaTools.GetTables' {
+            DBaTools\Get-DbaDbTable -SqlInstance $DbInstance
+        }
+        'system_objects' {
+$queryStr = @'
+select * from sys.system_objects
+'@
+            $invokeDbaQuerySplat = @{
+                SqlInstance = $DbInstance
+                Database    = $Database ?? 'BikeStores'
+                Query       = $queryStr
+            }
+
+            Invoke-DbaQuery @invokeDbaQuerySplat
+
+        }
+        default { throw "UnhandledNameQuery: $NamedQuery"}
+    }
+}
 function MonkeyData.SummarizeObjectType  {
     <#
     .SYNOPSIS

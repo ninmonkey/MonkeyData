@@ -1,4 +1,9 @@
-﻿# if($ScriptConf){ $ScriptConf.FirstLoad = $false }
+﻿<#
+see more:
+.LINK
+    https://docs.dbatools.io/Invoke-DbaQuery
+#>
+# if($ScriptConf){ $ScriptConf.FirstLoad = $false }
 $script:ScriptConf ??= @{
     FirstLoad = $true
 }
