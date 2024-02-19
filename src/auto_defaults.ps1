@@ -6,8 +6,10 @@ see also:
 - https://docs.dbatools.io/Export-DbaScript
 #>
 
-$Inst ??= Test-DbaConnection -SqlInstance 'NIN8\SQL2019'
-$inst | select *Name*, *inst*, IP*, *Port*, *version* -ea 'ignore'|ft
+# $Inst ??= Test-DbaConnection -SqlInstance 'NIN8\SQL2019'
+# $inst | select *Name*, *inst*, IP*, *Port*, *version* -ea 'ignore'|ft
+
+
 
 function Db.UseLocalTrustCert {
     param()
