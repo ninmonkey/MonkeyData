@@ -7,23 +7,30 @@ see more:
 $script:ScriptConf ??= @{
     FirstLoad = $true
 }
-# Invoke-DbaQuery -SqlInstance nin8\sql2019 -Database gLate -
+function QuickGcm.ByPrefix {
+    param( [string]$Pattern )
+    return $ExecutionContext.InvokeCommand.GetCommands( $Pattern, 'all', $true )
+         | Format-Table -AutoSize Name, CommandType, Visibility # , Parameters # ParameterSets
+}
+Import-Module DbaTools -PassThru
 push-location $PSScriptRoot
-impo (Join-Path $PSScriptRoot './MonkeyData/MonkeyData.psd1') -PassThru -Force -ea 'stop'
+
+Import-Module (Join-Path $PSScriptRoot './MonkeyData/MonkeyData.psd1') -PassThru -Force -ea 'stop'
 
 MonkeyData.Try-AcceptLocalhostCert -AlwaysAccept
-MonkeyData.GetDb|ft -AutoSize
+# dbatools\Connect-DbaInstance -SqlInstance 'nin8\sql2019'
+
 $db = MonkeyData.GetDb
+$db | Format-Table -AutoSize
+
 # $db[0].QueryStoreOptions | % Properties|ft
 if($ScriptConf.FirstLoad) {
-    $SCriptConf.FirstLoad = $false
-    $db | MonkeyData.SummarizeObjType Smo.Database | ft
-
-    dbatools\Connect-DbaInstance -SqlInstance 'nin8\sql2019'
+    $ScriptConf.FirstLoad = $false
+    $db | MonkeyData.Summarize-ObjType Smo.Database | Format-Table
 }
 
-Dotils.QuickGcm.ByPrefix -Pattern 'MonkeyData.*'
+QuickGcm.ByPrefix -Pattern 'MonkeyData.*'
 
-Invoke-dbaquery -SqlInstance nin8\sql2019 -Database BikeStores -Query @'
-select q.* from sys.system_objects as q
-'@|ft
+# Invoke-DbaQuery -SqlInstance nin8\sql2019  -Query 'select top @TopN q.* from sys.system_objects as q' -SqlParameter @(
+#     New-DbaSqlParameter -DbType Int32 -ParameterName 'TopN' -Value 3
+# )
